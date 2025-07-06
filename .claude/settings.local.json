@@ -4,7 +4,16 @@
       "Bash(npx create-next-app:*)",
       "Bash(ls:*)",
       "Bash(npm run dev:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(rm:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(start wordtest.html)",
+      "Bash(explorer.exe wordtest.html)",
+      "Bash(cmd.exe /c start wordtest.html)",
+      "Bash(git push:*)",
+      "Bash(gh auth:*)"
     ],
     "deny": []
   }
