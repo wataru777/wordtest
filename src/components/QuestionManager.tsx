@@ -1,0 +1,307 @@
+import { useState, useEffect } from 'react';
+import { Question, QuestionType } from '@/types/quiz';
+import { getAllQuestions, saveQuestions, getOriginalQuestions } from '@/utils/quizUtils';
+
+interface QuestionManagerProps {
+  onClose: () => void;
+}
+
+export default function QuestionManager({ onClose }: QuestionManagerProps) {
+  const [activeTab, setActiveTab] = useState<'add' | 'manage'>('add');
+  const [questionType, setQuestionType] = useState<QuestionType>('vocabulary');
+  const [choiceCount, setChoiceCount] = useState(4);
+  const [questions, setQuestions] = useState(getAllQuestions());
+  const [editingIndex, setEditingIndex] = useState(-1);
+  
+  const [formData, setFormData] = useState({
+    questionText: '',
+    correctAnswer: '',
+    wrongAnswer1: '',
+    wrongAnswer2: '',
+    wrongAnswer3: ''
+  });
+
+  useEffect(() => {
+    setQuestions(getAllQuestions());
+  }, []);
+
+  const resetForm = () => {
+    setFormData({
+      questionText: '',
+      correctAnswer: '',
+      wrongAnswer1: '',
+      wrongAnswer2: '',
+      wrongAnswer3: ''
+    });
+    setEditingIndex(-1);
+    setChoiceCount(4);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const choices = [
+      formData.correctAnswer,
+      formData.wrongAnswer1,
+      formData.wrongAnswer2
+    ];
+    
+    if (choiceCount === 4) {
+      choices.push(formData.wrongAnswer3);
+    }
+    
+    const newQuestion: Question = {
+      question: formData.questionText,
+      choices,
+      correct: 0
+    };
+    
+    const updatedQuestions = { ...questions };
+    
+    if (editingIndex !== -1) {
+      updatedQuestions[questionType][editingIndex] = newQuestion;
+      alert('問題を更新しました！');
+    } else {
+      updatedQuestions[questionType].push(newQuestion);
+      alert('問題を追加しました！');
+    }
+    
+    setQuestions(updatedQuestions);
+    saveQuestions(updatedQuestions);
+    resetForm();
+  };
+
+  const handleEdit = (index: number) => {
+    const question = questions[questionType][index];
+    setFormData({
+      questionText: question.question,
+      correctAnswer: question.choices[0],
+      wrongAnswer1: question.choices[1],
+      wrongAnswer2: question.choices[2],
+      wrongAnswer3: question.choices[3] || ''
+    });
+    setChoiceCount(question.choices.length);
+    setEditingIndex(index);
+    setActiveTab('add');
+  };
+
+  const handleDelete = (index: number) => {
+    if (confirm('この問題を削除してもよろしいですか？')) {
+      const updatedQuestions = { ...questions };
+      updatedQuestions[questionType].splice(index, 1);
+      setQuestions(updatedQuestions);
+      saveQuestions(updatedQuestions);
+    }
+  };
+
+  const isOriginalQuestion = (index: number): boolean => {
+    const originalQuestions = getOriginalQuestions();
+    return index < originalQuestions[questionType].length &&
+           JSON.stringify(questions[questionType][index]) === JSON.stringify(originalQuestions[questionType][index]);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold mb-6">問題管理</h2>
+        
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('add')}
+            className={`px-5 py-2 rounded-lg font-medium transition-all ${
+              activeTab === 'add' 
+                ? 'bg-indigo-600 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            問題を追加
+          </button>
+          <button
+            onClick={() => setActiveTab('manage')}
+            className={`px-5 py-2 rounded-lg font-medium transition-all ${
+              activeTab === 'manage' 
+                ? 'bg-indigo-600 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            問題を管理
+          </button>
+        </div>
+        
+        {activeTab === 'add' && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">問題の種類</label>
+              <select
+                value={questionType}
+                onChange={(e) => setQuestionType(e.target.value as QuestionType)}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+              >
+                <option value="vocabulary">語句</option>
+                <option value="proverb">ことわざ</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">選択肢の数</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setChoiceCount(3)}
+                  className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                    choiceCount === 3 
+                      ? 'bg-indigo-600 text-white border-indigo-600' 
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-600'
+                  }`}
+                >
+                  3択
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChoiceCount(4)}
+                  className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                    choiceCount === 4 
+                      ? 'bg-indigo-600 text-white border-indigo-600' 
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-600'
+                  }`}
+                >
+                  4択
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">問題文</label>
+              <textarea
+                value={formData.questionText}
+                onChange={(e) => setFormData({...formData, questionText: e.target.value})}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none min-h-[80px]"
+                required
+              />
+              <small className="text-gray-500 text-sm block mt-1">
+                ヒント: アンダーバーを引きたい部分を [[ ]] で囲んでください<br />
+                例: 友人の失敗を見て、彼は[[あざ笑った]]
+              </small>
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">正解</label>
+              <input
+                type="text"
+                value={formData.correctAnswer}
+                onChange={(e) => setFormData({...formData, correctAnswer: e.target.value})}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">不正解の選択肢1</label>
+              <input
+                type="text"
+                value={formData.wrongAnswer1}
+                onChange={(e) => setFormData({...formData, wrongAnswer1: e.target.value})}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">不正解の選択肢2</label>
+              <input
+                type="text"
+                value={formData.wrongAnswer2}
+                onChange={(e) => setFormData({...formData, wrongAnswer2: e.target.value})}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+                required
+              />
+            </div>
+            
+            {choiceCount === 4 && (
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">不正解の選択肢3</label>
+                <input
+                  type="text"
+                  value={formData.wrongAnswer3}
+                  onChange={(e) => setFormData({...formData, wrongAnswer3: e.target.value})}
+                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+                  required
+                />
+              </div>
+            )}
+            
+            <div className="flex gap-2 justify-end pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+              >
+                キャンセル
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
+              >
+                保存
+              </button>
+            </div>
+          </form>
+        )}
+        
+        {activeTab === 'manage' && (
+          <div>
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-2">問題の種類</label>
+              <select
+                value={questionType}
+                onChange={(e) => setQuestionType(e.target.value as QuestionType)}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+              >
+                <option value="vocabulary">語句</option>
+                <option value="proverb">ことわざ</option>
+              </select>
+            </div>
+            
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {questions[questionType].map((question, index) => (
+                <div key={index} className="bg-gray-50 p-4 rounded-lg flex justify-between items-center hover:bg-gray-100 transition-all">
+                  <div className="flex-1">
+                    <div className="font-medium">
+                      {question.question.replace(/\[\[(.*?)\]\]/g, '$1')}
+                      {isOriginalQuestion(index) && (
+                        <span className="text-gray-500 text-sm ml-2">(初期問題)</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(index)}
+                      className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-all"
+                    >
+                      編集
+                    </button>
+                    <button
+                      onClick={() => handleDelete(index)}
+                      className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-all"
+                    >
+                      削除
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={onClose}
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+              >
+                閉じる
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
