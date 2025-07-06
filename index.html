@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>語句・ことわざテスト</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="feedback-overlay" id="feedbackOverlay"></div>
+    
+    <div class="container">
+        <div class="start-screen" id="startScreen">
+            <h1>語句・ことわざテスト</h1>
+            <p style="margin-bottom: 30px; color: #4a5568; font-size: 1.1em;">どちらのテストを受けますか？</p>
+            <button class="mode-button" onclick="startQuiz('vocabulary')">語句テスト</button>
+            <button class="mode-button" onclick="startQuiz('proverb')">ことわざテスト</button>
+        </div>
+        
+        <div class="quiz-screen" id="quizScreen">
+            <div class="question-number" id="questionNumber"></div>
+            <div class="question" id="questionText"></div>
+            <div class="choices" id="choices"></div>
+            <div style="text-align: center; height: 80px; position: relative;">
+                <button class="next-button" id="nextButton" onclick="nextQuestion()">次の問題へ</button>
+            </div>
+        </div>
+        
+        <div class="result-screen" id="resultScreen">
+            <h1>テスト結果</h1>
+            <div class="score" id="score"></div>
+            <div class="grade" id="grade"></div>
+            <div class="comment" id="comment"></div>
+            <button class="restart-button" onclick="restartQuiz()">もう一度挑戦</button>
+        </div>
+    </div>
+    
+    <button class="add-question-button" onclick="showQuestionManager()">+</button>
+    
+    <div class="modal" id="questionManagerModal">
+        <div class="modal-content">
+            <h2>問題管理</h2>
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchTab('add')">問題を追加</button>
+                <button class="tab-button" onclick="switchTab('manage')">問題を管理</button>
+            </div>
+            
+            <div id="addQuestionTab">
+                <form id="addQuestionForm">
+                    <div class="form-group">
+                        <label>問題の種類</label>
+                        <select id="questionType">
+                            <option value="vocabulary">語句</option>
+                            <option value="proverb">ことわざ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>選択肢の数</label>
+                        <div class="choice-type-selector">
+                            <button type="button" class="choice-type-button" onclick="setChoiceCount(3)">3択</button>
+                            <button type="button" class="choice-type-button active" onclick="setChoiceCount(4)">4択</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>問題文</label>
+                        <textarea id="questionTextInput" required></textarea>
+                        <small style="color: #718096; display: block; margin-top: 5px;">
+                            ヒント: アンダーバーを引きたい部分を [[ ]] で囲んでください<br>
+                            例: 友人の失敗を見て、彼は[[あざ笑った]]
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label>正解</label>
+                        <input type="text" id="correctAnswer" required>
+                    </div>
+                    <div class="form-group">
+                        <label>不正解の選択肢1</label>
+                        <input type="text" id="wrongAnswer1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>不正解の選択肢2</label>
+                        <input type="text" id="wrongAnswer2" required>
+                    </div>
+                    <div class="form-group" id="wrongAnswer3Group">
+                        <label>不正解の選択肢3</label>
+                        <input type="text" id="wrongAnswer3">
+                    </div>
+                    <div class="form-buttons">
+                        <button type="button" class="form-button cancel-button" onclick="hideQuestionManager()">キャンセル</button>
+                        <button type="submit" class="form-button save-button">保存</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="manageQuestionsTab" style="display: none;">
+                <div class="form-group">
+                    <label>問題の種類</label>
+                    <select id="manageQuestionType" onchange="loadQuestionsForManagement()">
+                        <option value="vocabulary">語句</option>
+                        <option value="proverb">ことわざ</option>
+                    </select>
+                </div>
+                <div class="question-list" id="questionList"></div>
+                <div class="form-buttons">
+                    <button type="button" class="form-button cancel-button" onclick="hideQuestionManager()">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
