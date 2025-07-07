@@ -60,17 +60,8 @@ export default function QuizScreen({ question, questionNumber, onAnswer, onNext,
 
   return (
     <div className="relative">
-      <div className="flex justify-between items-center mb-6">
-        <div className="text-center text-gray-600 text-lg flex-1">
-          問題 {questionNumber} / 10
-        </div>
-        <button 
-          onClick={onQuit}
-          className="w-8 h-8 bg-red-500 text-white rounded-full text-sm font-bold hover:bg-red-600 transition-all duration-200 hover:scale-110 flex items-center justify-center"
-          title="テストを終了"
-        >
-          ✕
-        </button>
+      <div className="text-center text-gray-600 mb-6 text-lg">
+        問題 {questionNumber} / 10
       </div>
       
       <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-6 mb-6">
@@ -112,12 +103,29 @@ export default function QuizScreen({ question, questionNumber, onAnswer, onNext,
       </div>
       
       {showResult && (
-        <div className="text-center mt-8">
+        <div className="flex gap-4 justify-center mt-8">
           <button
             onClick={handleNext}
             className="bg-white text-gray-700 border-2 border-indigo-600 px-10 py-4 rounded-xl text-xl font-semibold hover:bg-gray-50 transition-all duration-300 hover:scale-105"
           >
             次の問題へ
+          </button>
+          <button
+            onClick={onQuit}
+            className="bg-red-500 text-white border-2 border-red-500 px-8 py-4 rounded-xl text-xl font-semibold hover:bg-red-600 transition-all duration-300 hover:scale-105"
+          >
+            終了
+          </button>
+        </div>
+      )}
+      
+      {!showResult && (
+        <div className="text-center mt-8">
+          <button
+            onClick={onQuit}
+            className="bg-red-500 text-white border-2 border-red-500 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-red-600 transition-all duration-300 hover:scale-105"
+          >
+            テストを終了
           </button>
         </div>
       )}
