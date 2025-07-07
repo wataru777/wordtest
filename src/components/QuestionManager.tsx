@@ -126,15 +126,33 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
     }
 
     const updatedQuestions = { ...questions };
-    const addedCount = csvData.length;
+    const existingQuestions = updatedQuestions[questionType];
     
-    // 既存の問題に追加
-    updatedQuestions[questionType] = [...updatedQuestions[questionType], ...csvData];
+    // 重複チェック: 問題文が同じものを除外
+    const newQuestions = csvData.filter(csvQuestion => {
+      return !existingQuestions.some(existing => 
+        existing.question.trim() === csvQuestion.question.trim()
+      );
+    });
+    
+    const duplicateCount = csvData.length - newQuestions.length;
+    
+    if (newQuestions.length === 0) {
+      alert('すべての問題が既に存在しています。新しい問題は追加されませんでした。');
+      return;
+    }
+    
+    // 新しい問題のみを追加
+    updatedQuestions[questionType] = [...existingQuestions, ...newQuestions];
     
     setQuestions(updatedQuestions);
     saveQuestions(updatedQuestions);
     
-    alert(`${addedCount}件の問題を追加しました！`);
+    let message = `${newQuestions.length}件の問題を追加しました！`;
+    if (duplicateCount > 0) {
+      message += `\n（${duplicateCount}件の重複する問題はスキップされました）`;
+    }
+    alert(message);
     
     // フォームをリセット
     setCsvData([]);
