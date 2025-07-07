@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Question, QuestionType } from '@/types/quiz';
-import { getAllQuestions, saveQuestions, getOriginalQuestions } from '@/utils/quizUtils';
+import { getAllQuestions, saveQuestions, getOriginalQuestions, parseCsv } from '@/utils/quizUtils';
 
 interface QuestionManagerProps {
   onClose: () => void;
 }
 
 export default function QuestionManager({ onClose }: QuestionManagerProps) {
-  const [activeTab, setActiveTab] = useState<'add' | 'manage'>('add');
+  const [activeTab, setActiveTab] = useState<'add' | 'csv' | 'manage'>('add');
   const [questionType, setQuestionType] = useState<QuestionType>('vocabulary');
   const [choiceCount, setChoiceCount] = useState(4);
   const [questions, setQuestions] = useState(getAllQuestions());
   const [editingIndex, setEditingIndex] = useState(-1);
+  const [csvData, setCsvData] = useState<Question[]>([]);
   
   const [formData, setFormData] = useState({
     questionText: '',
@@ -100,6 +101,49 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
            JSON.stringify(questions[questionType][index]) === JSON.stringify(originalQuestions[questionType][index]);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const csvText = e.target?.result as string;
+          const parsedQuestions = parseCsv(csvText);
+          setCsvData(parsedQuestions);
+        } catch (error) {
+          alert('CSVファイルの読み込みに失敗しました: ' + (error as Error).message);
+          setCsvData([]);
+        }
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+  };
+
+  const handleImportCsv = () => {
+    if (csvData.length === 0) {
+      alert('インポートする問題がありません');
+      return;
+    }
+
+    const updatedQuestions = { ...questions };
+    const addedCount = csvData.length;
+    
+    // 既存の問題に追加
+    updatedQuestions[questionType] = [...updatedQuestions[questionType], ...csvData];
+    
+    setQuestions(updatedQuestions);
+    saveQuestions(updatedQuestions);
+    
+    alert(`${addedCount}件の問題を追加しました！`);
+    
+    // フォームをリセット
+    setCsvData([]);
+    const fileInput = document.getElementById('csvFile') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
@@ -115,6 +159,16 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
             }`}
           >
             問題を追加
+          </button>
+          <button
+            onClick={() => setActiveTab('csv')}
+            className={`px-5 py-2 rounded-lg font-medium transition-all ${
+              activeTab === 'csv' 
+                ? 'bg-indigo-600 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            CSV登録
           </button>
           <button
             onClick={() => setActiveTab('manage')}
@@ -246,6 +300,89 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
               </button>
             </div>
           </form>
+        )}
+        
+        {activeTab === 'csv' && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">問題の種類</label>
+              <select
+                value={questionType}
+                onChange={(e) => setQuestionType(e.target.value as QuestionType)}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+              >
+                <option value="vocabulary">語句</option>
+                <option value="proverb">ことわざ</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">CSVファイル</label>
+              <input
+                type="file"
+                id="csvFile"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+              />
+              <small className="text-gray-500 text-sm block mt-2">
+                CSVファイルの形式: 問題文,正解,不正解1,不正解2,不正解3(オプション)<br />
+                例: この[[単語]]の意味は？,正しい意味,間違い1,間違い2,間違い3<br />
+                ※問題文で[[]]を使うとアンダーバーが表示されます
+              </small>
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">プレビュー</label>
+              <div className="max-h-64 overflow-y-auto border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
+                {csvData.length === 0 ? (
+                  <p className="text-gray-500">CSVファイルを選択してください</p>
+                ) : (
+                  <div>
+                    <p className="font-medium mb-4">{csvData.length}件の問題が見つかりました:</p>
+                    <div className="space-y-3">
+                      {csvData.map((question, index) => (
+                        <div key={index} className="bg-white p-3 rounded border">
+                          <div className="font-medium text-sm text-gray-600 mb-1">問題 {index + 1}:</div>
+                          <div className="mb-2">
+                            <span 
+                              dangerouslySetInnerHTML={{
+                                __html: question.question.replace(/\[\[(.*?)\]\]/g, '<span style="text-decoration: underline;">$1</span>')
+                              }}
+                            />
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <strong>正解:</strong> {question.choices[0]}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <strong>不正解:</strong> {question.choices.slice(1).join(', ')}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex gap-2 justify-end pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+              >
+                キャンセル
+              </button>
+              <button
+                type="button"
+                onClick={handleImportCsv}
+                disabled={csvData.length === 0}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+              >
+                インポート
+              </button>
+            </div>
+          </div>
         )}
         
         {activeTab === 'manage' && (

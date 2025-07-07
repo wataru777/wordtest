@@ -288,3 +288,34 @@ export function getAllQuestions(): QuizData {
 export function getOriginalQuestions(): QuizData {
   return originalQuestions;
 }
+
+export function parseCsv(csvText: string): Question[] {
+  const lines = csvText.split('\n').filter(line => line.trim() !== '');
+  const questions: Question[] = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line === '') continue;
+    
+    const columns = line.split(',').map(col => col.trim());
+    
+    if (columns.length < 4) {
+      throw new Error(`行 ${i + 1}: 最低4列必要です (問題文、正解、不正解1、不正解2)`);
+    }
+    
+    const question: Question = {
+      question: columns[0],
+      choices: [columns[1], columns[2], columns[3]],
+      correct: 0
+    };
+    
+    // 4択の場合は5番目の列を追加
+    if (columns.length >= 5 && columns[4].trim() !== '') {
+      question.choices.push(columns[4]);
+    }
+    
+    questions.push(question);
+  }
+  
+  return questions;
+}
