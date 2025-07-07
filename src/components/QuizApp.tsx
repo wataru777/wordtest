@@ -46,6 +46,12 @@ export default function QuizApp() {
     setCorrectCount(0);
   };
 
+  const quitQuiz = () => {
+    if (confirm('テストを途中で終了しますか？')) {
+      setScreen('result');
+    }
+  };
+
   return (
     <div className="relative">
       <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 max-w-2xl w-full shadow-2xl animate-fade-in">
@@ -59,6 +65,7 @@ export default function QuizApp() {
             questionNumber={currentQuestionIndex + 1}
             onAnswer={answerQuestion}
             onNext={nextQuestion}
+            onQuit={quitQuiz}
           />
         )}
         

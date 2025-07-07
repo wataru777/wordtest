@@ -7,9 +7,10 @@ interface QuizScreenProps {
   questionNumber: number;
   onAnswer: (isCorrect: boolean) => void;
   onNext: () => void;
+  onQuit: () => void;
 }
 
-export default function QuizScreen({ question, questionNumber, onAnswer, onNext }: QuizScreenProps) {
+export default function QuizScreen({ question, questionNumber, onAnswer, onNext, onQuit }: QuizScreenProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -59,8 +60,17 @@ export default function QuizScreen({ question, questionNumber, onAnswer, onNext 
 
   return (
     <div className="relative">
-      <div className="text-center text-gray-600 mb-6 text-lg">
-        問題 {questionNumber} / 10
+      <div className="flex justify-between items-center mb-6">
+        <div className="text-center text-gray-600 text-lg flex-1">
+          問題 {questionNumber} / 10
+        </div>
+        <button 
+          onClick={onQuit}
+          className="w-8 h-8 bg-red-500 text-white rounded-full text-sm font-bold hover:bg-red-600 transition-all duration-200 hover:scale-110 flex items-center justify-center"
+          title="テストを終了"
+        >
+          ✕
+        </button>
       </div>
       
       <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-6 mb-6">
