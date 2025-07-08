@@ -1,0 +1,21 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  question  String
+  choices   String   // JSON array of choices
+  correct   Int      // Index of correct answer
+  type      String   // 'vocabulary' or 'proverb'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

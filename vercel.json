@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/questions/route.ts": {
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "DATABASE_URL": "@database-url"
+  }
+}

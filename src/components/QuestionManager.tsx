@@ -38,7 +38,7 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
     setChoiceCount(4);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const choices = [
@@ -51,25 +51,43 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
       choices.push(formData.wrongAnswer3);
     }
     
-    const newQuestion: Question = {
+    const newQuestion = {
       question: formData.questionText,
       choices,
-      correct: 0
+      correct: 0,
+      type: questionType
     };
     
-    const updatedQuestions = { ...questions };
-    
-    if (editingIndex !== -1) {
-      updatedQuestions[questionType][editingIndex] = newQuestion;
-      alert('問題を更新しました！');
-    } else {
-      updatedQuestions[questionType].push(newQuestion);
-      alert('問題を追加しました！');
+    try {
+      const response = await fetch('/api/questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newQuestion),
+      });
+      
+      if (response.ok) {
+        const updatedQuestions = { ...questions };
+        
+        if (editingIndex !== -1) {
+          updatedQuestions[questionType][editingIndex] = newQuestion;
+          alert('問題を更新しました！');
+        } else {
+          updatedQuestions[questionType].push(newQuestion);
+          alert('問題を追加しました！');
+        }
+        
+        setQuestions(updatedQuestions);
+        saveQuestions(updatedQuestions);
+        resetForm();
+      } else {
+        alert('問題の保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving question:', error);
+      alert('問題の保存中にエラーが発生しました');
     }
-    
-    setQuestions(updatedQuestions);
-    saveQuestions(updatedQuestions);
-    resetForm();
   };
 
   const handleEdit = (index: number) => {
@@ -119,7 +137,7 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
     }
   };
 
-  const handleImportCsv = () => {
+  const handleImportCsv = async () => {
     if (csvData.length === 0) {
       alert('インポートする問題がありません');
       return;
@@ -142,23 +160,52 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
       return;
     }
     
-    // 新しい問題のみを追加
-    updatedQuestions[questionType] = [...existingQuestions, ...newQuestions];
-    
-    setQuestions(updatedQuestions);
-    saveQuestions(updatedQuestions);
-    
-    let message = `${newQuestions.length}件の問題を追加しました！`;
-    if (duplicateCount > 0) {
-      message += `\n（${duplicateCount}件の重複する問題はスキップされました）`;
-    }
-    alert(message);
-    
-    // フォームをリセット
-    setCsvData([]);
-    const fileInput = document.getElementById('csvFile') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.value = '';
+    // データベースに新しい問題を保存
+    try {
+      const savePromises = newQuestions.map(question => 
+        fetch('/api/questions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            question: question.question,
+            choices: question.choices,
+            correct: question.correct,
+            type: questionType
+          }),
+        })
+      );
+      
+      const responses = await Promise.all(savePromises);
+      const failedSaves = responses.filter(response => !response.ok);
+      
+      if (failedSaves.length > 0) {
+        alert(`${failedSaves.length}件の問題の保存に失敗しました`);
+        return;
+      }
+      
+      // 新しい問題のみを追加
+      updatedQuestions[questionType] = [...existingQuestions, ...newQuestions];
+      
+      setQuestions(updatedQuestions);
+      saveQuestions(updatedQuestions);
+      
+      let message = `${newQuestions.length}件の問題を追加しました！`;
+      if (duplicateCount > 0) {
+        message += `\n（${duplicateCount}件の重複する問題はスキップされました）`;
+      }
+      alert(message);
+      
+      // フォームをリセット
+      setCsvData([]);
+      const fileInput = document.getElementById('csvFile') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
+    } catch (error) {
+      console.error('Error importing CSV:', error);
+      alert('CSVインポート中にエラーが発生しました');
     }
   };
 
