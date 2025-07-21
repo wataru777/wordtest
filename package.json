@@ -1,6 +1,6 @@
 {
   "name": "wordtest-nextjs",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,7 +9,14 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "npx prisma migrate deploy",
-    "db:generate": "npx prisma generate"
+    "db:generate": "npx prisma generate",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version",
+    "deploy": "node scripts/deploy.js",
+    "deploy:minor": "npm run version:minor && npm run deploy:push",
+    "deploy:major": "npm run version:major && npm run deploy:push",
+    "deploy:push": "git add . && git commit -m \"Deploy v$(node -p \"require('./package.json').version\")\" && git push origin main"
   },
   "dependencies": {
     "@prisma/client": "^6.11.1",

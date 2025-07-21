@@ -20,7 +20,9 @@
       "Bash(git pull:*)",
       "Bash(touch:*)",
       "Bash(npx prisma generate:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(chmod:*)",
+      "Bash(npm run deploy:*)"
     ],
     "deny": []
   }
