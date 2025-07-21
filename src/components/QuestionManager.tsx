@@ -156,12 +156,17 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
         const originalQuestions = getOriginalQuestions();
         const deletedOriginal = getDeletedOriginalQuestions();
         
-        // 削除される問題が初期問題の何番目かを特定
-        const originalIndex = originalQuestions[questionType].findIndex(
-          (original) => JSON.stringify(original) === JSON.stringify(questions[questionType][index])
-        );
+        // 削除されていない初期問題のマッピング
+        const availableOriginalIndices: number[] = [];
+        originalQuestions[questionType].forEach((_, originalIndex) => {
+          if (!deletedOriginal[questionType].includes(originalIndex)) {
+            availableOriginalIndices.push(originalIndex);
+          }
+        });
         
-        if (originalIndex !== -1) {
+        // 現在のindexに対応する元の初期問題インデックス
+        if (index < availableOriginalIndices.length) {
+          const originalIndex = availableOriginalIndices[index];
           const newDeletedOriginal = { ...deletedOriginal };
           if (!newDeletedOriginal[questionType].includes(originalIndex)) {
             newDeletedOriginal[questionType].push(originalIndex);
@@ -179,8 +184,18 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
 
   const isOriginalQuestion = (index: number): boolean => {
     const originalQuestions = getOriginalQuestions();
-    return index < originalQuestions[questionType].length &&
-           JSON.stringify(questions[questionType][index]) === JSON.stringify(originalQuestions[questionType][index]);
+    const deletedOriginal = getDeletedOriginalQuestions();
+    
+    // 削除されていない初期問題のマッピング
+    const availableOriginalIndices: number[] = [];
+    originalQuestions[questionType].forEach((_, originalIndex) => {
+      if (!deletedOriginal[questionType].includes(originalIndex)) {
+        availableOriginalIndices.push(originalIndex);
+      }
+    });
+    
+    // 現在のindexが削除されていない初期問題の範囲内か
+    return index < availableOriginalIndices.length;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
