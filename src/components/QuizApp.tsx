@@ -5,6 +5,7 @@ import StartScreen from "./StartScreen";
 import QuizScreen from "./QuizScreen";
 import ResultScreen from "./ResultScreen";
 import QuestionManager from "./QuestionManager";
+import DebugPanel from "./DebugPanel";
 import { Question, QuestionType, QuizData } from "@/types/quiz";
 import { getQuestions, shuffleArray, fetchQuestionsFromDB } from "@/utils/quizUtils";
 
@@ -14,7 +15,9 @@ export default function QuizApp() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [showQuestionManager, setShowQuestionManager] = useState(false);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [questionsData, setQuestionsData] = useState<QuizData | null>(null);
+  const [isDebugMode, setIsDebugMode] = useState(false);
 
   // コンポーネント初期化時にデータベースから問題を読み込み
   useEffect(() => {
@@ -24,7 +27,18 @@ export default function QuizApp() {
     };
     
     loadQuestions();
+
+    // デバッグモードの初期状態を取得
+    const savedDebugMode = localStorage.getItem('debugMode') === 'true';
+    setIsDebugMode(savedDebugMode);
   }, []);
+
+  // デバッグモードの切り替え
+  const toggleDebugMode = () => {
+    const newDebugMode = !isDebugMode;
+    setIsDebugMode(newDebugMode);
+    localStorage.setItem('debugMode', newDebugMode.toString());
+  };
 
   const startQuiz = (mode: QuestionType) => {
     // questionsDataがまだ読み込まれていない場合は、localStorageから取得
@@ -68,7 +82,11 @@ export default function QuizApp() {
     <div className="relative">
       <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 max-w-2xl w-full shadow-2xl animate-fade-in">
         {screen === 'start' && (
-          <StartScreen onStartQuiz={startQuiz} />
+          <StartScreen 
+            onStartQuiz={startQuiz} 
+            questionsData={questionsData}
+            isDebugMode={isDebugMode}
+          />
         )}
         
         {screen === 'quiz' && currentQuestions.length > 0 && (
@@ -90,6 +108,7 @@ export default function QuizApp() {
         )}
       </div>
 
+      {/* 問題管理ボタン */}
       <button
         onClick={() => setShowQuestionManager(true)}
         className="fixed bottom-5 right-5 w-15 h-15 bg-orange-500 text-white rounded-full text-2xl font-bold hover:bg-orange-600 transition-all duration-300 hover:scale-110 shadow-lg"
@@ -97,8 +116,40 @@ export default function QuizApp() {
         +
       </button>
 
+      {/* デバッグモードボタン */}
+      <div className="fixed bottom-5 left-5 flex flex-col gap-2">
+        <button
+          onClick={toggleDebugMode}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            isDebugMode 
+              ? 'bg-red-500 text-white hover:bg-red-600' 
+              : 'bg-gray-500 text-white hover:bg-gray-600'
+          }`}
+          title={isDebugMode ? 'プロダクションモードに切替' : 'デバッグモードに切替'}
+        >
+          {isDebugMode ? '🐛 DEBUG' : '🚀 PROD'}
+        </button>
+        
+        {isDebugMode && (
+          <button
+            onClick={() => setShowDebugPanel(true)}
+            className="px-4 py-2 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 transition-all"
+            title="デバッグパネルを開く"
+          >
+            🔧 Panel
+          </button>
+        )}
+      </div>
+
       {showQuestionManager && (
         <QuestionManager onClose={() => setShowQuestionManager(false)} />
+      )}
+
+      {showDebugPanel && (
+        <DebugPanel 
+          isVisible={showDebugPanel} 
+          onClose={() => setShowDebugPanel(false)} 
+        />
       )}
     </div>
   );
