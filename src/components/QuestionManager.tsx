@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Question, QuestionType } from '@/types/quiz';
-import { getAllQuestions, saveQuestions, getOriginalQuestions, parseCsv, fetchQuestionsFromDB } from '@/utils/quizUtils';
+import { getAllQuestions, saveQuestions, getOriginalQuestions, parseCsv, fetchQuestionsFromDB, getDeletedOriginalQuestions, saveDeletedOriginalQuestions } from '@/utils/quizUtils';
 
 interface QuestionManagerProps {
   onClose: () => void;
@@ -43,6 +43,13 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
       const originalQuestions = getOriginalQuestions();
       const updatedQuestions = { ...questions };
       updatedQuestions[questionType] = [...originalQuestions[questionType]];
+      
+      // 削除リストをクリア
+      const deletedOriginal = getDeletedOriginalQuestions();
+      const newDeletedOriginal = { ...deletedOriginal };
+      newDeletedOriginal[questionType] = [];
+      saveDeletedOriginalQuestions(newDeletedOriginal);
+      
       setQuestions(updatedQuestions);
       saveQuestions(updatedQuestions);
       alert('初期問題を復元しました');
@@ -143,6 +150,26 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
     
     if (confirm(confirmMessage)) {
       const updatedQuestions = { ...questions };
+      
+      // 初期問題の場合は削除リストに追加
+      if (isOriginal) {
+        const originalQuestions = getOriginalQuestions();
+        const deletedOriginal = getDeletedOriginalQuestions();
+        
+        // 削除される問題が初期問題の何番目かを特定
+        const originalIndex = originalQuestions[questionType].findIndex(
+          (original) => JSON.stringify(original) === JSON.stringify(questions[questionType][index])
+        );
+        
+        if (originalIndex !== -1) {
+          const newDeletedOriginal = { ...deletedOriginal };
+          if (!newDeletedOriginal[questionType].includes(originalIndex)) {
+            newDeletedOriginal[questionType].push(originalIndex);
+            saveDeletedOriginalQuestions(newDeletedOriginal);
+          }
+        }
+      }
+      
       updatedQuestions[questionType].splice(index, 1);
       setQuestions(updatedQuestions);
       saveQuestions(updatedQuestions);

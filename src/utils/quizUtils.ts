@@ -239,6 +239,29 @@ export function saveQuestions(questions: QuizData): void {
   }
 }
 
+// 削除された初期問題のIDを管理する関数
+export function saveDeletedOriginalQuestions(deletedQuestions: {vocabulary: number[], proverb: number[]}): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('deletedOriginalQuestions', JSON.stringify(deletedQuestions));
+  }
+}
+
+export function getDeletedOriginalQuestions(): {vocabulary: number[], proverb: number[]} {
+  if (typeof window === 'undefined') {
+    return { vocabulary: [], proverb: [] };
+  }
+  
+  const saved = localStorage.getItem('deletedOriginalQuestions');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return { vocabulary: [], proverb: [] };
+    }
+  }
+  return { vocabulary: [], proverb: [] };
+}
+
 export function getGrade(correctCount: number, totalQuestions: number): Grade {
   const percentage = correctCount / totalQuestions;
   
@@ -300,10 +323,21 @@ export async function fetchQuestionsFromDB(): Promise<QuizData> {
     const vocabularyQuestions = await vocabularyResponse.json();
     const proverbQuestions = await proverbResponse.json();
 
-    // データベースから取得した問題と元の問題をマージ
+    // 削除された初期問題を取得
+    const deletedOriginal = getDeletedOriginalQuestions();
+    
+    // 削除されていない初期問題のみを含める
+    const filteredOriginalVocabulary = originalQuestions.vocabulary.filter((_, index) => 
+      !deletedOriginal.vocabulary.includes(index)
+    );
+    const filteredOriginalProverb = originalQuestions.proverb.filter((_, index) => 
+      !deletedOriginal.proverb.includes(index)
+    );
+    
+    // データベースから取得した問題と削除されていない元の問題をマージ
     const mergedQuestions: QuizData = {
-      vocabulary: [...originalQuestions.vocabulary, ...vocabularyQuestions],
-      proverb: [...originalQuestions.proverb, ...proverbQuestions]
+      vocabulary: [...filteredOriginalVocabulary, ...vocabularyQuestions],
+      proverb: [...filteredOriginalProverb, ...proverbQuestions]
     };
 
     // localStorageも更新
