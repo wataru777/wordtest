@@ -6,6 +6,7 @@ import QuizScreen from "./QuizScreen";
 import ResultScreen from "./ResultScreen";
 import QuestionManager from "./QuestionManager";
 import DebugPanel from "./DebugPanel";
+import VersionLabel from "./VersionLabel";
 import { Question, QuestionType, QuizData } from "@/types/quiz";
 import { getQuestions, shuffleArray, fetchQuestionsFromDB } from "@/utils/quizUtils";
 
@@ -80,6 +81,9 @@ export default function QuizApp() {
 
   return (
     <div className="relative">
+      {/* バージョン表記 */}
+      <VersionLabel isDebugMode={isDebugMode} />
+      
       <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 max-w-2xl w-full shadow-2xl animate-fade-in">
         {screen === 'start' && (
           <StartScreen 
