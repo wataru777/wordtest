@@ -37,6 +37,18 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
     setQuestions(questionsFromDB);
   };
 
+  // 指定タイプの初期問題を復元
+  const resetToOriginal = () => {
+    if (confirm(`${questionType === 'vocabulary' ? '語句' : 'ことわざ'}の初期問題を復元しますか？\n（カスタム問題と編集された初期問題は削除されます）`)) {
+      const originalQuestions = getOriginalQuestions();
+      const updatedQuestions = { ...questions };
+      updatedQuestions[questionType] = [...originalQuestions[questionType]];
+      setQuestions(updatedQuestions);
+      saveQuestions(updatedQuestions);
+      alert('初期問題を復元しました');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       questionText: '',
@@ -105,7 +117,7 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
   const handleEdit = (index: number) => {
     // 初期問題の編集に警告を表示
     if (isOriginalQuestion(index)) {
-      if (!confirm('初期問題を編集すると、元の問題が変更されます。続行しますか？')) {
+      if (!confirm('初期問題を編集すると、元の問題内容が変更されます。続行しますか？')) {
         return;
       }
     }
@@ -124,13 +136,12 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
   };
 
   const handleDelete = async (index: number) => {
-    // 初期問題は削除できない
-    if (isOriginalQuestion(index)) {
-      alert('初期問題は削除できません。');
-      return;
-    }
-
-    if (confirm('この問題を削除してもよろしいですか？')) {
+    const isOriginal = isOriginalQuestion(index);
+    const confirmMessage = isOriginal 
+      ? 'この初期問題を削除してもよろしいですか？\n（削除後は復元できません）' 
+      : 'この問題を削除してもよろしいですか？';
+    
+    if (confirm(confirmMessage)) {
       const updatedQuestions = { ...questions };
       updatedQuestions[questionType].splice(index, 1);
       setQuestions(updatedQuestions);
@@ -510,19 +521,18 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
                           ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                           : 'bg-blue-500 text-white hover:bg-blue-600'
                       }`}
-                      title={isOriginalQuestion(index) ? '初期問題（編集時に確認が必要）' : '問題を編集'}
+                      title={isOriginalQuestion(index) ? '初期問題を編集（確認が必要）' : '問題を編集'}
                     >
                       編集
                     </button>
                     <button
                       onClick={() => handleDelete(index)}
-                      disabled={isOriginalQuestion(index)}
                       className={`px-3 py-1 rounded text-sm transition-all ${
                         isOriginalQuestion(index)
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          ? 'bg-red-600 text-white hover:bg-red-700'
                           : 'bg-red-500 text-white hover:bg-red-600'
                       }`}
-                      title={isOriginalQuestion(index) ? '初期問題は削除できません' : '問題を削除'}
+                      title={isOriginalQuestion(index) ? '初期問題を削除（復元不可）' : '問題を削除'}
                     >
                       削除
                     </button>
@@ -531,7 +541,14 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
               ))}
             </div>
             
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-between pt-4">
+              <button
+                onClick={resetToOriginal}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all"
+                title="このタイプの問題を初期状態に復元"
+              >
+                初期問題に復元
+              </button>
               <button
                 onClick={onClose}
                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
