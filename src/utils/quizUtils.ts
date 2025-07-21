@@ -285,6 +285,38 @@ export function getAllQuestions(): QuizData {
   return originalQuestions;
 }
 
+// データベースから問題を取得する関数
+export async function fetchQuestionsFromDB(): Promise<QuizData> {
+  try {
+    const [vocabularyResponse, proverbResponse] = await Promise.all([
+      fetch('/api/questions?type=vocabulary'),
+      fetch('/api/questions?type=proverb')
+    ]);
+
+    if (!vocabularyResponse.ok || !proverbResponse.ok) {
+      throw new Error('Failed to fetch questions from database');
+    }
+
+    const vocabularyQuestions = await vocabularyResponse.json();
+    const proverbQuestions = await proverbResponse.json();
+
+    // データベースから取得した問題と元の問題をマージ
+    const mergedQuestions: QuizData = {
+      vocabulary: [...originalQuestions.vocabulary, ...vocabularyQuestions],
+      proverb: [...originalQuestions.proverb, ...proverbQuestions]
+    };
+
+    // localStorageも更新
+    saveQuestions(mergedQuestions);
+    
+    return mergedQuestions;
+  } catch (error) {
+    console.error('Error fetching questions from database:', error);
+    // エラーの場合は元の問題とlocalStorageの内容を返す
+    return getAllQuestions();
+  }
+}
+
 export function getOriginalQuestions(): QuizData {
   return originalQuestions;
 }

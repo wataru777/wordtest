@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import StartScreen from "./StartScreen";
 import QuizScreen from "./QuizScreen";
 import ResultScreen from "./ResultScreen";
 import QuestionManager from "./QuestionManager";
-import { Question, QuestionType } from "@/types/quiz";
-import { getQuestions, shuffleArray } from "@/utils/quizUtils";
+import { Question, QuestionType, QuizData } from "@/types/quiz";
+import { getQuestions, shuffleArray, fetchQuestionsFromDB } from "@/utils/quizUtils";
 
 export default function QuizApp() {
   const [screen, setScreen] = useState<'start' | 'quiz' | 'result'>('start');
@@ -14,9 +14,21 @@ export default function QuizApp() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [showQuestionManager, setShowQuestionManager] = useState(false);
+  const [questionsData, setQuestionsData] = useState<QuizData | null>(null);
+
+  // コンポーネント初期化時にデータベースから問題を読み込み
+  useEffect(() => {
+    const loadQuestions = async () => {
+      const questions = await fetchQuestionsFromDB();
+      setQuestionsData(questions);
+    };
+    
+    loadQuestions();
+  }, []);
 
   const startQuiz = (mode: QuestionType) => {
-    const questions = getQuestions(mode);
+    // questionsDataがまだ読み込まれていない場合は、localStorageから取得
+    const questions = questionsData ? questionsData[mode] : getQuestions(mode);
     const shuffledQuestions = shuffleArray(questions).slice(0, 10);
     
     setCurrentQuestions(shuffledQuestions);

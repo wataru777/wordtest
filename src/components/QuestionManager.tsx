@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Question, QuestionType } from '@/types/quiz';
-import { getAllQuestions, saveQuestions, getOriginalQuestions, parseCsv } from '@/utils/quizUtils';
+import { getAllQuestions, saveQuestions, getOriginalQuestions, parseCsv, fetchQuestionsFromDB } from '@/utils/quizUtils';
 
 interface QuestionManagerProps {
   onClose: () => void;
@@ -23,8 +23,19 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
   });
 
   useEffect(() => {
-    setQuestions(getAllQuestions());
+    const loadQuestions = async () => {
+      const questionsFromDB = await fetchQuestionsFromDB();
+      setQuestions(questionsFromDB);
+    };
+    
+    loadQuestions();
   }, []);
+
+  // データベースから問題を再読み込みする関数
+  const reloadQuestions = async () => {
+    const questionsFromDB = await fetchQuestionsFromDB();
+    setQuestions(questionsFromDB);
+  };
 
   const resetForm = () => {
     setFormData({
@@ -80,6 +91,7 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
         
         setQuestions(updatedQuestions);
         saveQuestions(updatedQuestions);
+        await reloadQuestions(); // データベースから最新の問題を再読み込み
         resetForm();
       } else {
         alert('問題の保存に失敗しました');
@@ -104,12 +116,13 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
     setActiveTab('add');
   };
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
     if (confirm('この問題を削除してもよろしいですか？')) {
       const updatedQuestions = { ...questions };
       updatedQuestions[questionType].splice(index, 1);
       setQuestions(updatedQuestions);
       saveQuestions(updatedQuestions);
+      await reloadQuestions(); // データベースから最新の問題を再読み込み
     }
   };
 
@@ -190,6 +203,7 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
       
       setQuestions(updatedQuestions);
       saveQuestions(updatedQuestions);
+      await reloadQuestions(); // データベースから最新の問題を再読み込み
       
       let message = `${newQuestions.length}件の問題を追加しました！`;
       if (duplicateCount > 0) {
