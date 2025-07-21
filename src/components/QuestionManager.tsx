@@ -103,6 +103,13 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
   };
 
   const handleEdit = (index: number) => {
+    // 初期問題の編集に警告を表示
+    if (isOriginalQuestion(index)) {
+      if (!confirm('初期問題を編集すると、元の問題が変更されます。続行しますか？')) {
+        return;
+      }
+    }
+
     const question = questions[questionType][index];
     setFormData({
       questionText: question.question,
@@ -117,6 +124,12 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
   };
 
   const handleDelete = async (index: number) => {
+    // 初期問題は削除できない
+    if (isOriginalQuestion(index)) {
+      alert('初期問題は削除できません。');
+      return;
+    }
+
     if (confirm('この問題を削除してもよろしいですか？')) {
       const updatedQuestions = { ...questions };
       updatedQuestions[questionType].splice(index, 1);
@@ -492,13 +505,24 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(index)}
-                      className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-all"
+                      className={`px-3 py-1 rounded text-sm transition-all ${
+                        isOriginalQuestion(index)
+                          ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                          : 'bg-blue-500 text-white hover:bg-blue-600'
+                      }`}
+                      title={isOriginalQuestion(index) ? '初期問題（編集時に確認が必要）' : '問題を編集'}
                     >
                       編集
                     </button>
                     <button
                       onClick={() => handleDelete(index)}
-                      className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-all"
+                      disabled={isOriginalQuestion(index)}
+                      className={`px-3 py-1 rounded text-sm transition-all ${
+                        isOriginalQuestion(index)
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-red-500 text-white hover:bg-red-600'
+                      }`}
+                      title={isOriginalQuestion(index) ? '初期問題は削除できません' : '問題を削除'}
                     >
                       削除
                     </button>
