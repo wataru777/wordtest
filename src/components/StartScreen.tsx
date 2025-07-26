@@ -17,7 +17,9 @@ export default function StartScreen({ onStartQuiz, questionsData, isDebugMode }:
           onClick={() => onStartQuiz('vocabulary')}
           className="bg-indigo-600 text-white px-10 py-5 rounded-xl text-xl font-semibold hover:bg-indigo-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
         >
-          語句テスト
+          <div>
+            語句<br />テスト
+          </div>
           {isDebugMode && questionsData && (
             <div className="text-sm font-normal mt-1 opacity-75">
               {questionsData.vocabulary.length}問
@@ -28,7 +30,9 @@ export default function StartScreen({ onStartQuiz, questionsData, isDebugMode }:
           onClick={() => onStartQuiz('proverb')}
           className="bg-indigo-600 text-white px-10 py-5 rounded-xl text-xl font-semibold hover:bg-indigo-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
         >
-          ことわざテスト
+          <div>
+            ことわざ<br />テスト
+          </div>
           {isDebugMode && questionsData && (
             <div className="text-sm font-normal mt-1 opacity-75">
               {questionsData.proverb.length}問
@@ -39,7 +43,9 @@ export default function StartScreen({ onStartQuiz, questionsData, isDebugMode }:
           onClick={() => onStartQuiz('wago')}
           className="bg-indigo-600 text-white px-10 py-5 rounded-xl text-xl font-semibold hover:bg-indigo-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
         >
-          和語テスト
+          <div>
+            和語<br />テスト
+          </div>
           {isDebugMode && questionsData && (
             <div className="text-sm font-normal mt-1 opacity-75">
               {questionsData.wago.length}問
