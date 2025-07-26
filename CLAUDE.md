@@ -93,6 +93,11 @@ npm install              # 依存関係インストール
 npm run build            # 本番用ビルド
 npm start               # 本番サーバー起動
 
+# 自動デプロイ（バージョン管理付き）
+npm run deploy           # パッチバージョンアップ + 自動デプロイ（推奨）
+npm run deploy:minor     # マイナーバージョンアップ + 自動デプロイ
+npm run deploy:major     # メジャーバージョンアップ + 自動デプロイ
+
 # データベース
 npm run db:generate      # Prismaクライアント生成
 npm run db:migrate       # データベースマイグレーション実行
@@ -100,6 +105,26 @@ npm run db:migrate       # データベースマイグレーション実行
 # コード品質
 npm run lint             # ESLintチェック
 npm run typecheck        # TypeScriptタイプチェック (if available)
+```
+
+### 自動デプロイ機能について
+
+**重要**: 「デプロイして」という指示を受けた場合は、手動のgitコマンドではなく`npm run deploy`を使用してください。
+
+`npm run deploy`コマンドは以下を自動実行します：
+1. パッチバージョンを自動アップ（例: 0.2.1 → 0.2.2）
+2. すべての変更をgit addでステージング
+3. 統一されたコミットメッセージでコミット作成
+4. GitHubのmainブランチにプッシュ
+5. Vercelで自動デプロイ開始
+
+コミットメッセージ形式：
+```
+Deploy v0.2.2
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ## APIエンドポイント
