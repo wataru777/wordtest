@@ -103,6 +103,7 @@ const originalQuestions: QuizData = {
       correct: 0
     }
   ],
+  wago: [],
   proverb: [
     {
       question: "「石の上にも三年」の意味は？",
@@ -240,26 +241,31 @@ export function saveQuestions(questions: QuizData): void {
 }
 
 // 削除された初期問題のIDを管理する関数
-export function saveDeletedOriginalQuestions(deletedQuestions: {vocabulary: number[], proverb: number[]}): void {
+export function saveDeletedOriginalQuestions(deletedQuestions: {vocabulary: number[], proverb: number[], wago: number[]}): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem('deletedOriginalQuestions', JSON.stringify(deletedQuestions));
   }
 }
 
-export function getDeletedOriginalQuestions(): {vocabulary: number[], proverb: number[]} {
+export function getDeletedOriginalQuestions(): {vocabulary: number[], proverb: number[], wago: number[]} {
   if (typeof window === 'undefined') {
-    return { vocabulary: [], proverb: [] };
+    return { vocabulary: [], proverb: [], wago: [] };
   }
   
   const saved = localStorage.getItem('deletedOriginalQuestions');
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      return {
+        vocabulary: parsed.vocabulary || [],
+        proverb: parsed.proverb || [],
+        wago: parsed.wago || []
+      };
     } catch {
-      return { vocabulary: [], proverb: [] };
+      return { vocabulary: [], proverb: [], wago: [] };
     }
   }
-  return { vocabulary: [], proverb: [] };
+  return { vocabulary: [], proverb: [], wago: [] };
 }
 
 export function getGrade(correctCount: number, totalQuestions: number): Grade {
@@ -311,17 +317,19 @@ export function getAllQuestions(): QuizData {
 // データベースから問題を取得する関数
 export async function fetchQuestionsFromDB(): Promise<QuizData> {
   try {
-    const [vocabularyResponse, proverbResponse] = await Promise.all([
+    const [vocabularyResponse, proverbResponse, wagoResponse] = await Promise.all([
       fetch('/api/questions?type=vocabulary'),
-      fetch('/api/questions?type=proverb')
+      fetch('/api/questions?type=proverb'),
+      fetch('/api/questions?type=wago')
     ]);
 
-    if (!vocabularyResponse.ok || !proverbResponse.ok) {
+    if (!vocabularyResponse.ok || !proverbResponse.ok || !wagoResponse.ok) {
       throw new Error('Failed to fetch questions from database');
     }
 
     const vocabularyQuestions = await vocabularyResponse.json();
     const proverbQuestions = await proverbResponse.json();
+    const wagoQuestions = await wagoResponse.json();
 
     // 削除された初期問題を取得
     const deletedOriginal = getDeletedOriginalQuestions();
@@ -333,11 +341,15 @@ export async function fetchQuestionsFromDB(): Promise<QuizData> {
     const filteredOriginalProverb = originalQuestions.proverb.filter((_, index) => 
       !deletedOriginal.proverb.includes(index)
     );
+    const filteredOriginalWago = originalQuestions.wago.filter((_, index) => 
+      !deletedOriginal.wago.includes(index)
+    );
     
     // データベースから取得した問題と削除されていない元の問題をマージ
     const mergedQuestions: QuizData = {
       vocabulary: [...filteredOriginalVocabulary, ...vocabularyQuestions],
-      proverb: [...filteredOriginalProverb, ...proverbQuestions]
+      proverb: [...filteredOriginalProverb, ...proverbQuestions],
+      wago: [...filteredOriginalWago, ...wagoQuestions]
     };
 
     // localStorageも更新

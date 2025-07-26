@@ -39,7 +39,8 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
 
   // 指定タイプの初期問題を復元
   const resetToOriginal = () => {
-    if (confirm(`${questionType === 'vocabulary' ? '語句' : 'ことわざ'}の初期問題を復元しますか？\n（カスタム問題と編集された初期問題は削除されます）`)) {
+    const typeLabel = questionType === 'vocabulary' ? '語句' : questionType === 'proverb' ? 'ことわざ' : '和語';
+    if (confirm(`${typeLabel}の初期問題を復元しますか？\n（カスタム問題と編集された初期問題は削除されます）`)) {
       const originalQuestions = getOriginalQuestions();
       const updatedQuestions = { ...questions };
       updatedQuestions[questionType] = [...originalQuestions[questionType]];
@@ -338,6 +339,7 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
               >
                 <option value="vocabulary">語句</option>
                 <option value="proverb">ことわざ</option>
+                <option value="wago">和語</option>
               </select>
             </div>
             
@@ -458,6 +460,7 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
               >
                 <option value="vocabulary">語句</option>
                 <option value="proverb">ことわざ</option>
+                <option value="wago">和語</option>
               </select>
             </div>
             
@@ -541,6 +544,7 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
               >
                 <option value="vocabulary">語句</option>
                 <option value="proverb">ことわざ</option>
+                <option value="wago">和語</option>
               </select>
             </div>
             

@@ -1,6 +1,77 @@
-# WEB環境デプロイ手順
+# 🚀 自動デプロイガイド
 
-WEB環境で他のPCからアクセスできるようにデプロイする手順です。
+このプロジェクトには自動バージョン管理とデプロイ機能が実装されています。
+
+## 🚀 基本デプロイ
+
+### パッチバージョンアップ（推奨）
+```bash
+npm run deploy
+```
+- バージョンを 0.2.1 → 0.2.2 に自動アップ
+- 変更をコミット
+- GitHubにプッシュしてVercelで自動デプロイ
+
+### マイナーバージョンアップ
+```bash
+npm run deploy:minor
+```
+- バージョンを 0.2.1 → 0.3.0 に自動アップ  
+- 新機能追加時に使用
+
+### メジャーバージョンアップ
+```bash
+npm run deploy:major
+```
+- バージョンを 0.2.1 → 1.0.0 に自動アップ
+- 破壊的変更時に使用
+
+## 📋 デプロイスクリプトの動作
+
+1. **バージョンアップ**: package.jsonのバージョンを自動インクリメント
+2. **ステージング**: すべての変更をgit addでステージ
+3. **コミット**: 統一されたコミットメッセージで自動コミット
+4. **プッシュ**: GitHubのmainブランチにプッシュ
+5. **自動デプロイ**: VercelがGitHubのプッシュを検知して自動デプロイ
+
+## 🔧 手動バージョン管理
+
+必要に応じて手動でバージョン操作も可能：
+
+```bash
+# パッチバージョンのみ更新
+npm run version:patch
+
+# マイナーバージョンのみ更新  
+npm run version:minor
+
+# メジャーバージョンのみ更新
+npm run version:major
+```
+
+## 📝 コミットメッセージ形式
+
+自動デプロイ時のコミットメッセージ：
+```
+Deploy v0.2.1
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+## ⚠️ 注意事項
+
+- デプロイ前にローカルでテスト実行（`npm run build`）を推奨
+- `deploy`スクリプトは未コミットの変更もすべて含める
+- バージョン番号は自動管理されるため手動編集は避ける
+- Vercelの環境変数設定が正しいことを確認する
+
+---
+
+# 🌐 初回環境構築手順
+
+WEB環境で他のPCからアクセスできるようにデプロイする初回設定手順です。
 
 ## 1. Vercelアカウントの作成とプロジェクトの設定
 
@@ -31,32 +102,10 @@ Vercelのプロジェクト設定で以下を設定：
 DATABASE_URL=postgres://username:password@hostname:port/database
 ```
 
-## 4. Prismaスキーマの更新
+## 4. 初回デプロイ
 
-本番環境用にPostgreSQLを使用するため、`prisma/schema.prisma`を更新：
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+```bash
+npm run deploy
 ```
 
-## 5. デプロイとマイグレーション
-
-1. Vercelにデプロイ
-2. データベースマイグレーション実行：
-   ```bash
-   npx prisma migrate deploy
-   ```
-
-## 6. アクセス確認
-
-- デプロイ後、Vercelから提供されるURLにアクセス
-- 別のPCからも同じURLで問題データが共有される
-
-## 注意事項
-
-- 本番環境では`DATABASE_URL`を必ず設定
-- SQLiteは本番環境では推奨されない
-- データベースの初期化後、既存の問題データを再インポートする必要がある場合がある
+これで自動的にバージョン管理されたデプロイが実行されます！

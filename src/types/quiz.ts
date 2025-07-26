@@ -4,11 +4,12 @@ export interface Question {
   correct: number;
 }
 
-export type QuestionType = 'vocabulary' | 'proverb';
+export type QuestionType = 'vocabulary' | 'proverb' | 'wago';
 
 export interface QuizData {
   vocabulary: Question[];
   proverb: Question[];
+  wago: Question[];
 }
 
 export interface Grade {
