@@ -22,7 +22,8 @@
       "Bash(npx prisma generate:*)",
       "Bash(npx prisma:*)",
       "Bash(chmod:*)",
-      "Bash(npm run deploy:*)"
+      "Bash(npm run deploy:*)",
+      "Bash(npm run:*)"
     ],
     "deny": []
   }

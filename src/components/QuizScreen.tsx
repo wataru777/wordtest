@@ -5,7 +5,7 @@ import { shuffleArray } from '@/utils/quizUtils';
 interface QuizScreenProps {
   question: Question;
   questionNumber: number;
-  onAnswer: (isCorrect: boolean) => void;
+  onAnswer: (isCorrect: boolean, questionId: string) => void;
   onNext: () => void;
   onQuit: () => void;
 }
@@ -41,7 +41,7 @@ export default function QuizScreen({ question, questionNumber, onAnswer, onNext,
 
     setSelectedAnswer(choiceIndex);
     const isCorrect = originalIndex === question.correct;
-    onAnswer(isCorrect);
+    onAnswer(isCorrect, question.id);
     
     setShowFeedback(true);
     setTimeout(() => {

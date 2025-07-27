@@ -83,6 +83,7 @@ export default function QuestionManager({ onClose }: QuestionManagerProps) {
     }
     
     const newQuestion = {
+      id: editingIndex !== -1 ? questions[questionType][editingIndex].id : `new-${Date.now()}`,
       question: formData.questionText,
       choices,
       correct: 0,

@@ -180,6 +180,7 @@ export function parseCsv(csvText: string): Question[] {
     }
     
     const question: Question = {
+      id: `csv-${Date.now()}-${i}`,
       question: columns[0],
       choices: [columns[1], columns[2], columns[3]],
       correct: 0

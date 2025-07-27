@@ -2,14 +2,24 @@ import { QuestionType, QuizData } from '@/types/quiz';
 
 interface StartScreenProps {
   onStartQuiz: (mode: QuestionType) => void;
+  onShowStatistics: () => void;
   questionsData?: QuizData | null;
   isDebugMode?: boolean;
 }
 
-export default function StartScreen({ onStartQuiz, questionsData, isDebugMode }: StartScreenProps) {
+export default function StartScreen({ onStartQuiz, onShowStatistics, questionsData, isDebugMode }: StartScreenProps) {
   return (
     <div className="text-center">
-      <h1 className="text-4xl font-bold text-indigo-600 mb-8">語句・ことわざ・和語テスト</h1>
+      <div className="flex justify-between items-center mb-8">
+        <div></div>
+        <h1 className="text-4xl font-bold text-indigo-600">語句・ことわざ・和語テスト</h1>
+        <button
+          onClick={onShowStatistics}
+          className="bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-green-700 transition-all duration-300 hover:scale-105"
+        >
+          成績を見る
+        </button>
+      </div>
       <p className="text-lg text-gray-600 mb-8">どのテストを受けますか？</p>
       
       <div className="flex flex-col sm:flex-row gap-4 justify-center">

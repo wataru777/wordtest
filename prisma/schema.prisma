@@ -18,4 +18,15 @@ model Question {
   type      String   // 'vocabulary' or 'proverb'
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  QuizResult QuizResult[]
+}
+
+model QuizResult {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id])
+  isCorrect  Boolean
+  quizType   String   // 'vocabulary', 'proverb', 'wago'
+  answeredAt DateTime @default(now())
 }

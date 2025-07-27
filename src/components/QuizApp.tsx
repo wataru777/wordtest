@@ -7,11 +7,12 @@ import ResultScreen from "./ResultScreen";
 import QuestionManager from "./QuestionManager";
 import DebugPanel from "./DebugPanel";
 import VersionLabel from "./VersionLabel";
+import StatisticsScreen from "./StatisticsScreen";
 import { Question, QuestionType, QuizData } from "@/types/quiz";
 import { getQuestions, shuffleArray, fetchQuestionsFromDB } from "@/utils/quizUtils";
 
 export default function QuizApp() {
-  const [screen, setScreen] = useState<'start' | 'quiz' | 'result'>('start');
+  const [screen, setScreen] = useState<'start' | 'quiz' | 'result' | 'statistics'>('start');
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
@@ -19,6 +20,7 @@ export default function QuizApp() {
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [questionsData, setQuestionsData] = useState<QuizData | null>(null);
   const [isDebugMode, setIsDebugMode] = useState(false);
+  const [currentQuizType, setCurrentQuizType] = useState<QuestionType>('vocabulary');
 
   // コンポーネント初期化時にデータベースから問題を読み込み
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function QuizApp() {
     setCurrentQuestions(shuffledQuestions);
     setCurrentQuestionIndex(0);
     setCorrectCount(0);
+    setCurrentQuizType(mode);
     setScreen('quiz');
   };
 
@@ -60,9 +63,26 @@ export default function QuizApp() {
     }
   };
 
-  const answerQuestion = (isCorrect: boolean) => {
+  const answerQuestion = async (isCorrect: boolean, questionId: string) => {
     if (isCorrect) {
       setCorrectCount(correctCount + 1);
+    }
+
+    // 成績をデータベースに保存
+    try {
+      await fetch('/api/quiz-results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questionId,
+          isCorrect,
+          quizType: currentQuizType,
+        }),
+      });
+    } catch (error) {
+      console.error('成績の保存に失敗しました:', error);
     }
   };
 
@@ -79,6 +99,14 @@ export default function QuizApp() {
     }
   };
 
+  const showStatistics = () => {
+    setScreen('statistics');
+  };
+
+  const backToStart = () => {
+    setScreen('start');
+  };
+
   return (
     <div className="relative">
       {/* バージョン表記 */}
@@ -88,8 +116,15 @@ export default function QuizApp() {
         {screen === 'start' && (
           <StartScreen 
             onStartQuiz={startQuiz} 
+            onShowStatistics={showStatistics}
             questionsData={questionsData}
             isDebugMode={isDebugMode}
+          />
+        )}
+        
+        {screen === 'statistics' && (
+          <StatisticsScreen 
+            onBack={backToStart}
           />
         )}
         
